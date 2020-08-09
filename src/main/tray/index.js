@@ -1,6 +1,7 @@
+import eventTopic from '../../common/eventTopic'
+
 const {Menu, Tray} = require('electron')
 const path = require('path')
-const createSendBox = require('../sendBox')
 
 export default (mainWindow) => {
   let tray
@@ -16,7 +17,9 @@ export default (mainWindow) => {
     {
       label: '发送邮件',
       click: () => {
-        createSendBox()
+        mainWindow.show()
+        mainWindow.setSkipTaskbar(false)
+        mainWindow.webContents.send(eventTopic.readyToSend)
       }
     },
     {

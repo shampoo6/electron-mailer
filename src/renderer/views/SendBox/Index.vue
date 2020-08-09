@@ -51,7 +51,7 @@
     },
     data () {
       return {
-        loading: true,
+        loading: false,
         configPath: 'd:/electron-mailer-config',
         content: '',
         editorOption: {}
@@ -59,10 +59,6 @@
     },
     methods: {
       addEventListener () {
-        ipcRenderer.on(eventTopic.readConfig, (_, config) => {
-          this.loading = false
-          this.content = config.content
-        })
         ipcRenderer.on(eventTopic.sendMail, (_, error) => {
           this.loading = false
           if (error) {
@@ -74,9 +70,11 @@
         })
       },
       readConfig () {
-        let path = localStorage.getItem(saveConfigDir)
-        if (path) this.configPath = path
-        ipcRenderer.send(eventTopic.readConfig, this.configPath)
+        // let path = localStorage.getItem(saveConfigDir)
+        // if (path) this.configPath = path
+        // ipcRenderer.send(eventTopic.readConfig, this.configPath)
+        let config = this.$store.state.MailConfig.mailConfig
+        this.content = config.content
       },
       goBack () {
         this.$router.back()
@@ -91,7 +89,7 @@
         console.log('editor ready!', quill)
       },
       onEditorChange ({quill, html, text}) {
-        console.log('editor change!', quill, html, text)
+        // console.log('editor change!', quill, html, text)
         this.content = html
       },
       sendMail () {

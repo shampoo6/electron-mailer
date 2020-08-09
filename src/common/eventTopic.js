@@ -2,5 +2,7 @@ export default {
   saveConfig: 'saveConfig',
   readConfig: 'readConfig',
   sendMail: 'sendMail',
-  quit: 'quit'
+  quit: 'quit',
+  readyToSend: 'readyToSend',
+  startTaskJob: 'startTaskJob'
 }

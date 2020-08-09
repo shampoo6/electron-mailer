@@ -13,6 +13,13 @@
                         <!-- path -->
                         <el-input v-model="emailSetting.path"/>
                     </el-form-item>
+                    <el-form-item prop="time" label="闹钟">
+                        <el-time-picker
+                                v-model="emailSetting.time"
+                                :picker-options="{selectableRange: '00:00:00 - 23:59:59'}"
+                                placeholder="任意时间点">
+                        </el-time-picker>
+                    </el-form-item>
                     <br/>
                     <h4>账户信息</h4>
                     <el-divider content-position="left"/>
@@ -100,18 +107,17 @@
     created () {
       // 绑定事件
       this.addEventListener()
-      // 读取配置
-      this.readConfig()
-    },
-    mounted () {
       this.$nextTick(() => {
         this.$refs.myQuillEditor.$el.offsetParent.className = ''
         this.$refs.myQuillEditor.$el.offsetParent.classList = []
         this.$refs.myQuillEditor2.$el.offsetParent.className = ''
         this.$refs.myQuillEditor2.$el.offsetParent.classList = []
       })
+    },
+    mounted () {
+      // 读取配置
+      this.readConfig()
       addQuillTitle()
-      window.richTextEditor = this.content
     },
     data () {
       const checkEmail = (_, value, callback) => {
@@ -137,7 +143,7 @@
         callback()
       }
       return {
-        loading: true,
+        loading: false,
         rules: {
           path: [
             {required: true, message: '请输入保存配置的路径', trigger: 'blur'}
@@ -166,6 +172,7 @@
         },
         emailSetting: {
           path: 'd:/electron-mailer-config',
+          time: new Date(),
           email: '',
           pwd: '',
           smtp: 'smtp.qiye.163.com',
@@ -181,7 +188,8 @@
         },
         editorOption2: {
           // some quill options
-        }
+        },
+        _config: null
       }
     },
     methods: {
@@ -198,7 +206,7 @@
         console.log('editor ready!', quill)
       },
       onEditorChange ({quill, html, text}) {
-        console.log('editor change!', quill, html, text)
+        // console.log('editor change!', quill, html, text)
         this.content = html
       },
       onEditorBlur2 (quill) {
@@ -211,20 +219,20 @@
         console.log('editor ready!', quill)
       },
       onEditorChange2 ({quill, html, text}) {
-        console.log('editor change!', quill, html, text)
+        // console.log('editor change!', quill, html, text)
         this.content2 = html
       },
       addEventListener () {
-        ipcRenderer.on(eventTopic.readConfig, (_, saveConfig) => {
-          console.log('readconfig load')
-          this.loading = false
-          if (!saveConfig) return
-          for (let key in this.emailSetting) {
-            this.emailSetting[key] = saveConfig[key]
-          }
-          this.content = saveConfig.content
-          this.content2 = saveConfig.sign
-        })
+        // ipcRenderer.on(eventTopic.readConfig, (_, saveConfig) => {
+        //   this.loading = false
+        //   if (!saveConfig) return
+        //   for (let key in this.emailSetting) {
+        //     this.emailSetting[key] = saveConfig[key]
+        //   }
+        //   this.content = saveConfig.content
+        //   this.content2 = saveConfig.sign
+        //   this.emailSetting.time = new Date(saveConfig.time)
+        // })
         ipcRenderer.on(eventTopic.saveConfig, (_, error, path) => {
           this.loading = false
           if (error) {
@@ -233,6 +241,8 @@
           } else {
             this.$message.success('保存成功')
             localStorage.setItem(saveConfigDir, path)
+            this.$store.dispatch('saveMailConfig', this._config)
+            this._config = null
           }
         })
         ipcRenderer.on(eventTopic.sendMail, (_, error) => {
@@ -246,9 +256,13 @@
         })
       },
       readConfig () {
-        let path = localStorage.getItem(saveConfigDir)
-        if (path) this.emailSetting.path = path
-        ipcRenderer.send(eventTopic.readConfig, this.emailSetting.path)
+        let config = this.$store.state.MailConfig.mailConfig
+        for (let key in this.emailSetting) {
+          this.emailSetting[key] = config[key]
+        }
+        this.content = config.content
+        this.content2 = config.sign
+        this.emailSetting.time = new Date(config.time)
       },
       saveConfig () {
         // 验证
@@ -262,7 +276,9 @@
             }
             config.content = this.content
             config.sign = this.content2
-            ipcRenderer.send(eventTopic.saveConfig, config)
+            config.time = this.emailSetting.time ? this.emailSetting.time.getTime() : new Date().getTime()
+            this._config = config
+            ipcRenderer.send(eventTopic.saveConfig, this._config)
           }
         })
       },
@@ -283,7 +299,6 @@
     },
     beforeDestroy () {
       ipcRenderer.removeAllListeners(eventTopic.saveConfig)
-      ipcRenderer.removeAllListeners(eventTopic.readConfig)
     }
   }
 </script>

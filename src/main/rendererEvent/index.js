@@ -1,15 +1,23 @@
-import {ipcMain} from 'electron'
+import {app, ipcMain} from 'electron'
 import eventTopic from '../../common/eventTopic'
 import fs from 'fs'
 import path from 'path'
 import nodemailer from 'nodemailer'
 
+const CronJob = require('cron').CronJob
+
+const saveDir = process.env.NODE_ENV === 'development'
+  ? 'd:/conf'
+  : path.join(app.getAppPath(), '/conf')
+const savePath = path.join(saveDir, 'config.json')
+let taskJob
+
 function saveHandler (event, saveConfig) {
-  checkDir(saveConfig.path).then(() => {
-    let savePath = path.join(saveConfig.path, 'config.json')
+  checkDir(saveDir).then(() => {
     fs.writeFile(savePath, JSON.stringify(saveConfig), err => {
       if (err) throw err
       event.sender.send(eventTopic.saveConfig, null, saveConfig.path)
+      startTaskJobHandler(null, new Date(saveConfig.time))
     })
   }).catch(error => {
     console.error(error)
@@ -38,21 +46,15 @@ function checkDir (path) {
 
 function readFileHandler (event, configPath) {
   ipcMain.once(eventTopic.readConfig, readFileHandler)
-  if (!configPath) {
-    console.log(configPath)
-    event.sender.send(eventTopic.readConfig)
-    return
-  }
-  fs.readFile(path.join(configPath, 'config.json'), (err, data) => {
+  fs.readFile(savePath, (err, data) => {
     if (err) {
-      console.error(err)
-      event.sender.send(eventTopic.readConfig)
+      mainWindow.webContents.send(eventTopic.readConfig)
     } else {
       try {
-        event.sender.send(eventTopic.readConfig, JSON.parse(data.toString()))
+        mainWindow.webContents.send(eventTopic.readConfig, JSON.parse(data.toString()))
       } catch (e) {
         console.error(e)
-        event.sender.send(eventTopic.readConfig)
+        mainWindow.webContents.send(eventTopic.readConfig)
       }
     }
   })
@@ -61,7 +63,7 @@ function readFileHandler (event, configPath) {
 function sendMailHandler (event, configPath, content) {
   console.log('send mail be called!!!')
   // 读取配置
-  fs.readFile(path.join(configPath, 'config.json'), (err, data) => {
+  fs.readFile(savePath, (err, data) => {
     if (err) {
       console.error(err)
       event.sender.send(eventTopic.sendMail, err)
@@ -97,10 +99,44 @@ async function sendMail (config, event) {
   })
 }
 
-export default (mainWindow) => {
+function startTaskJobHandler (event, date) {
+  if (taskJob) {
+    taskJob.stop()
+    taskJob = null
+  }
+  let seconds = date.getSeconds()
+  let minutes = date.getMinutes()
+  let hours = date.getHours()
+  taskJob = new CronJob(`${seconds} ${minutes} ${hours} * * *`, () => {
+    console.log('taskJob be invoked: ' + taskJob.cronTime)
+    mainWindow.show()
+    mainWindow.setSkipTaskbar(false)
+    mainWindow.webContents.send(eventTopic.readyToSend)
+  }, null, true)
+  taskJob.start()
+  console.log('taskJob be started: ' + taskJob.cronTime)
+}
+
+function initTaskJob () {
+  fs.readFile(savePath, (err, data) => {
+    if (err) {
+      console.error(err)
+    } else {
+      let config = JSON.parse(data.toString())
+      let date = new Date(config.time)
+      startTaskJobHandler(null, date)
+    }
+  })
+}
+
+let mainWindow
+export default (win) => {
+  mainWindow = win
+  initTaskJob()
   ipcMain.once(eventTopic.saveConfig, saveHandler)
   ipcMain.once(eventTopic.readConfig, readFileHandler)
   ipcMain.once(eventTopic.sendMail, sendMailHandler)
+  ipcMain.on(eventTopic.startTaskJob, startTaskJobHandler)
   ipcMain.once(eventTopic.quit, () => {
     mainWindow.destroy()
   })

@@ -7,6 +7,8 @@ import store from './store'
 
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
+import {ipcRenderer} from 'electron'
+import eventTopic from '../common/eventTopic'
 
 Vue.use(ElementUI)
 
@@ -15,9 +17,21 @@ Vue.http = Vue.prototype.$http = axios
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */
-new Vue({
+let _app = new Vue({
   components: {App},
   router,
   store,
   template: '<App/>'
 }).$mount('#app')
+
+ipcRenderer.on(eventTopic.readyToSend, () => {
+  if (_app.$route.path !== '/sendbox') {
+    _app.$router.push('/sendbox')
+  }
+})
+
+ipcRenderer.on(eventTopic.readConfig, (_, saveConfig) => {
+  _app.$store.dispatch('saveMailConfig', saveConfig)
+})
+
+ipcRenderer.send(eventTopic.readConfig)
