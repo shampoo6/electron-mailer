@@ -3,6 +3,7 @@
 import {app, BrowserWindow} from 'electron'
 import rendererEvent from './rendererEvent'
 import createTray from './tray'
+import '../renderer/store'
 
 /**
  * Set `__static` path to static files in production
@@ -34,7 +35,7 @@ function createMainWindow () {
     useContentSize: true,
     width: 1000
   })
-
+  // mainWindow.webContents.openDevTools()
   mainWindow.loadURL(winURL)
 
   mainWindow.on('closed', () => {

@@ -31,6 +31,7 @@ ipcRenderer.on(eventTopic.readyToSend, () => {
 })
 
 ipcRenderer.on(eventTopic.readConfig, (_, saveConfig) => {
+  console.log(saveConfig)
   _app.$store.dispatch('saveMailConfig', saveConfig)
 })
 

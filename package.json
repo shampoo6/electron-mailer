@@ -21,6 +21,7 @@
     "postinstall": "npm run lint:fix"
   },
   "build": {
+    "extraResources": ["static/"],
     "productName": "electron-mailer",
     "appId": "com.shampoo6.electronmailer",
     "directories": {
@@ -52,6 +53,10 @@
     },
     "linux": {
       "icon": "build/icons"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     }
   },
   "dependencies": {

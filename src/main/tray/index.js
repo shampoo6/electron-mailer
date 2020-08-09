@@ -1,12 +1,13 @@
 import eventTopic from '../../common/eventTopic'
+import path from 'path'
 
-const {Menu, Tray} = require('electron')
-const path = require('path')
+const {Menu, Tray, nativeImage} = require('electron')
+// const path = require('path')
 
 export default (mainWindow) => {
   let tray
   let icoPath = path.join(__dirname, '../../../static/icon.ico')
-  tray = new Tray(icoPath)
+  tray = new Tray(nativeImage.createFromPath(icoPath))
   const contextMenu = Menu.buildFromTemplate([
     {
       label: '打开界面',

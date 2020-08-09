@@ -256,7 +256,9 @@
         })
       },
       readConfig () {
+        if (!this.$store.state.MailConfig || !this.$store.state.MailConfig.mailConfig) return
         let config = this.$store.state.MailConfig.mailConfig
+        if (config.mail === '') return
         for (let key in this.emailSetting) {
           this.emailSetting[key] = config[key]
         }

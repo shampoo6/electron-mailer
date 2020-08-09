@@ -5,10 +5,10 @@ import path from 'path'
 import nodemailer from 'nodemailer'
 
 const CronJob = require('cron').CronJob
-
+// renderer.js:7 D:\Program Files\electron-mailer\resources\app.asar
 const saveDir = process.env.NODE_ENV === 'development'
   ? 'd:/conf'
-  : path.join(app.getAppPath(), '/conf')
+  : path.join(path.dirname(app.getAppPath()), '/conf')
 const savePath = path.join(saveDir, 'config.json')
 let taskJob
 

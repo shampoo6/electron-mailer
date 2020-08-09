@@ -70,9 +70,7 @@
         })
       },
       readConfig () {
-        // let path = localStorage.getItem(saveConfigDir)
-        // if (path) this.configPath = path
-        // ipcRenderer.send(eventTopic.readConfig, this.configPath)
+        if (!this.$store.state.MailConfig || !this.$store.state.MailConfig.mailConfig) return
         let config = this.$store.state.MailConfig.mailConfig
         this.content = config.content
       },
