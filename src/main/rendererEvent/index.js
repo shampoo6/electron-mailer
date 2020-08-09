@@ -2,9 +2,11 @@ import {ipcMain} from 'electron'
 import eventTopic from '../../common/eventTopic'
 import fs from 'fs'
 import path from 'path'
+import nodemailer from 'nodemailer'
 
 ipcMain.once(eventTopic.saveConfig, saveHandler)
 ipcMain.once(eventTopic.readConfig, readFileHandler)
+ipcMain.once(eventTopic.sendMail, sendMailHandler)
 
 function saveHandler (event, saveConfig) {
   checkDir(saveConfig.path).then(() => {
@@ -52,5 +54,42 @@ function readFileHandler (event, configPath) {
       }
     }
     ipcMain.once(eventTopic.readConfig, readFileHandler)
+  })
+}
+
+function sendMailHandler (event, configPath) {
+  // 读取配置
+  fs.readFile(path.join(configPath, 'config.json'), (err, data) => {
+    if (err) {
+      console.error(err)
+      event.sender.send(eventTopic.sendMail, err)
+    } else {
+      try {
+        let config = JSON.parse(data.toString())
+        sendMail(config, event)
+      } catch (e) {
+        event.sender.send(eventTopic.sendMail, e)
+      }
+    }
+  })
+}
+
+async function sendMail (config, event) {
+  let poolConfig = `smtps://${config.email}:${config.pwd}@${config.smtp}/?pool=true`
+  let transporter = nodemailer.createTransport(poolConfig)
+  // send mail with defined transport object
+  await transporter.sendMail({
+    from: `"${config.name}" <${config.email}>`, // sender address
+    to: config.to, // list of receivers
+    cc: config.cc,
+    subject: config.subject, // Subject line
+    html: `${config.content}<br/>${config.sign}` // html body
+  }, (err, msg) => {
+    if (err) {
+      console.error(err)
+      event.sender.send(eventTopic.sendMail, err)
+    } else {
+      event.sender.send(eventTopic.sendMail)
+    }
   })
 }

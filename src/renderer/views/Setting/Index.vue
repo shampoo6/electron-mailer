@@ -18,6 +18,10 @@
                 <!-- pwd -->
                 <el-input v-model="emailSetting.pwd"/>
             </el-form-item>
+            <el-form-item prop="smtp" label="smtp服务器">
+                <!-- pwd -->
+                <el-input v-model="emailSetting.smtp"/>
+            </el-form-item>
             <br/>
             <h4>邮件内容</h4>
             <el-divider content-position="left"/>
@@ -28,6 +32,10 @@
             <el-form-item prop="to" label="收件人">
                 <!-- to -->
                 <el-input v-model="emailSetting.to"/>
+            </el-form-item>
+            <el-form-item prop="cc" label="抄送">
+                <!-- cc -->
+                <el-input v-model="emailSetting.cc"/>
             </el-form-item>
             <el-form-item prop="subject" label="主题">
                 <!-- subject -->
@@ -57,6 +65,7 @@
             </el-form-item>
             <el-form-item>
                 <el-button :loading="loading" type="primary" @click="saveConfig">保存</el-button>
+                <el-button :loading="loading" @click="sendMail">立即发送</el-button>
             </el-form-item>
         </el-form>
     </div>
@@ -73,6 +82,7 @@
   import eventTopic from '../../../common/eventTopic'
 
   const emailRegex = /^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/
+  const saveConfigDir = 'saveConfigDir'
 
   export default {
     components: {
@@ -128,10 +138,16 @@
           pwd: [
             {required: true, message: '请输入授权密码', trigger: 'blur'}
           ],
+          smtp: [
+            {required: true, message: '请输入smtp服务器地址', trigger: 'blur'}
+          ],
           name: [
             {required: true, message: '请输入寄件人姓名', trigger: 'blur'}
           ],
           to: [
+            {validator: checkEmails, trigger: 'blur'}
+          ],
+          cc: [
             {validator: checkEmails, trigger: 'blur'}
           ],
           subject: [
@@ -142,8 +158,10 @@
           path: 'd:/electron-mailer-config',
           email: '',
           pwd: '',
+          smtp: 'smtp.qiye.163.com',
           name: '',
           to: '',
+          cc: '',
           subject: ''
         },
         content: '<h2>I am Example</h2>',
@@ -200,30 +218,43 @@
             console.error(error)
           } else {
             this.$message.success('保存成功')
-            localStorage.setItem('saveConfigDir', path)
+            localStorage.setItem(saveConfigDir, path)
+          }
+        })
+        ipcRenderer.on(eventTopic.sendMail, (_, error) => {
+          this.loading = false
+          if (error) {
+            console.error(error)
+            this.$message.error('邮件发送失败')
+          } else {
+            this.$message.success('邮件发送成功')
           }
         })
       },
       readConfig () {
-        let path = localStorage.getItem('saveConfigDir')
+        let path = localStorage.getItem(saveConfigDir)
         if (path) this.emailSetting.path = path
         ipcRenderer.send(eventTopic.readConfig, this.emailSetting.path)
       },
       saveConfig () {
         // 验证
-        // this.$refs.emailSetting.validate((valid) => {
-        //   if (valid) {
-        // 获取config
+        this.$refs.emailSetting.validate((valid) => {
+          if (valid) {
+            // 获取config
+            this.loading = true
+            let config = {}
+            for (let key in this.emailSetting) {
+              config[key] = this.emailSetting[key]
+            }
+            config.content = this.content
+            config.sign = this.content2
+            ipcRenderer.send(eventTopic.saveConfig, config)
+          }
+        })
+      },
+      sendMail () {
         this.loading = true
-        let config = {}
-        for (let key in this.emailSetting) {
-          config[key] = this.emailSetting[key]
-        }
-        config.content = this.content
-        config.sign = this.content2
-        ipcRenderer.send(eventTopic.saveConfig, config)
-        // }
-        // })
+        ipcRenderer.send(eventTopic.sendMail, localStorage.getItem(saveConfigDir))
       }
     },
     computed: {

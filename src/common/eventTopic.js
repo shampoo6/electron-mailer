@@ -1,4 +1,5 @@
 export default {
   saveConfig: 'saveConfig',
-  readConfig: 'readConfig'
+  readConfig: 'readConfig',
+  sendMail: 'sendMail'
 }
