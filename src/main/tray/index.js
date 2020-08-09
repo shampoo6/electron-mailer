@@ -1,17 +1,6 @@
 const {Menu, Tray} = require('electron')
 const path = require('path')
-
-// 创建系统通知区菜单
-// tray = new Tray(path.join(__dirname, 'icon.ico'));
-// const contextMenu = Menu.buildFromTemplate([
-//   {label: '退出', click: () => {win.destroy()}},//我们需要在这里有一个真正的退出（这里直接强制退出）
-// ])
-// tray.setToolTip('My托盘测试')
-// tray.setContextMenu(contextMenu)
-// tray.on('click', ()=>{ //我们这里模拟桌面程序点击通知区图标实现打开关闭应用的功能
-//   win.isVisible() ? win.hide() : win.show()
-//   win.isVisible() ?win.setSkipTaskbar(false):win.setSkipTaskbar(true);
-// })
+const createSendBox = require('../sendBox')
 
 export default (mainWindow) => {
   let tray
@@ -22,6 +11,12 @@ export default (mainWindow) => {
       label: '打开界面',
       click: () => {
         mainWindow.show()
+      }
+    },
+    {
+      label: '发送邮件',
+      click: () => {
+        createSendBox()
       }
     },
     {

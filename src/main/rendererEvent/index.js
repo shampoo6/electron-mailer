@@ -37,6 +37,12 @@ function checkDir (path) {
 }
 
 function readFileHandler (event, configPath) {
+  ipcMain.once(eventTopic.readConfig, readFileHandler)
+  if (!configPath) {
+    console.log(configPath)
+    event.sender.send(eventTopic.readConfig)
+    return
+  }
   fs.readFile(path.join(configPath, 'config.json'), (err, data) => {
     if (err) {
       console.error(err)
@@ -49,11 +55,11 @@ function readFileHandler (event, configPath) {
         event.sender.send(eventTopic.readConfig)
       }
     }
-    ipcMain.once(eventTopic.readConfig, readFileHandler)
   })
 }
 
 function sendMailHandler (event, configPath, content) {
+  console.log('send mail be called!!!')
   // 读取配置
   fs.readFile(path.join(configPath, 'config.json'), (err, data) => {
     if (err) {
@@ -91,8 +97,11 @@ async function sendMail (config, event) {
   })
 }
 
-export default () => {
+export default (mainWindow) => {
   ipcMain.once(eventTopic.saveConfig, saveHandler)
   ipcMain.once(eventTopic.readConfig, readFileHandler)
   ipcMain.once(eventTopic.sendMail, sendMailHandler)
+  ipcMain.once(eventTopic.quit, () => {
+    mainWindow.destroy()
+  })
 }

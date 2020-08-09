@@ -1,73 +1,81 @@
 <template>
     <div>
-        <el-form ref="emailSetting" :model="emailSetting" :rules="rules" label-width="100px">
-            <h4>综合配置</h4>
-            <el-divider content-position="left"/>
-            <el-form-item prop="path" label="配置路径">
-                <!-- path -->
-                <el-input v-model="emailSetting.path"/>
-            </el-form-item>
-            <br/>
-            <h4>账户信息</h4>
-            <el-divider content-position="left"/>
-            <el-form-item prop="email" label="寄件邮箱">
-                <!-- email -->
-                <el-input v-model="emailSetting.email"/>
-            </el-form-item>
-            <el-form-item prop="pwd" label="授权密码">
-                <!-- pwd -->
-                <el-input v-model="emailSetting.pwd"/>
-            </el-form-item>
-            <el-form-item prop="smtp" label="smtp服务器">
-                <!-- pwd -->
-                <el-input v-model="emailSetting.smtp"/>
-            </el-form-item>
-            <br/>
-            <h4>邮件内容</h4>
-            <el-divider content-position="left"/>
-            <el-form-item prop="name" label="寄件人姓名">
-                <!-- from -->
-                <el-input v-model="emailSetting.name"/>
-            </el-form-item>
-            <el-form-item prop="to" label="收件人">
-                <!-- to -->
-                <el-input v-model="emailSetting.to"/>
-            </el-form-item>
-            <el-form-item prop="cc" label="抄送">
-                <!-- cc -->
-                <el-input v-model="emailSetting.cc"/>
-            </el-form-item>
-            <el-form-item prop="subject" label="主题">
-                <!-- subject -->
-                <el-input v-model="emailSetting.subject"/>
-            </el-form-item>
-            <el-form-item label="内容模板">
-                <quill-editor v-model="content"
-                              ref="myQuillEditor"
-                              :options="editorOption"
-                              @blur="onEditorBlur"
-                              @focus="onEditorFocus"
-                              @ready="onEditorReady"
-                              @change="onEditorChange"
-                >
-                </quill-editor>
-            </el-form-item>
-            <el-form-item label="签名">
-                <quill-editor v-model="content2"
-                              ref="myQuillEditor2"
-                              :options="editorOption2"
-                              @blur="onEditorBlur2"
-                              @focus="onEditorFocus2"
-                              @ready="onEditorReady2"
-                              @change="onEditorChange2"
-                >
-                </quill-editor>
-            </el-form-item>
-            <el-form-item>
-                <el-button :loading="loading" type="primary" @click="saveConfig">保存</el-button>
-                <el-button :loading="loading" @click="sendMail">立即发送</el-button>
-            </el-form-item>
-        </el-form>
+        <el-container>
+            <el-header style="padding-top:20px;">
+                <el-page-header @back="goBack" content="设置">
+                </el-page-header>
+            </el-header>
+            <el-main>
+                <el-form ref="emailSetting" :model="emailSetting" :rules="rules" label-width="100px">
+                    <h4>综合配置</h4>
+                    <el-divider content-position="left"/>
+                    <el-form-item prop="path" label="配置路径">
+                        <!-- path -->
+                        <el-input v-model="emailSetting.path"/>
+                    </el-form-item>
+                    <br/>
+                    <h4>账户信息</h4>
+                    <el-divider content-position="left"/>
+                    <el-form-item prop="email" label="寄件邮箱">
+                        <!-- email -->
+                        <el-input v-model="emailSetting.email"/>
+                    </el-form-item>
+                    <el-form-item prop="pwd" label="授权密码">
+                        <!-- pwd -->
+                        <el-input v-model="emailSetting.pwd"/>
+                    </el-form-item>
+                    <el-form-item prop="smtp" label="smtp服务器">
+                        <!-- pwd -->
+                        <el-input v-model="emailSetting.smtp"/>
+                    </el-form-item>
+                    <br/>
+                    <h4>邮件内容</h4>
+                    <el-divider content-position="left"/>
+                    <el-form-item prop="name" label="寄件人姓名">
+                        <!-- from -->
+                        <el-input v-model="emailSetting.name"/>
+                    </el-form-item>
+                    <el-form-item prop="to" label="收件人">
+                        <!-- to -->
+                        <el-input v-model="emailSetting.to"/>
+                    </el-form-item>
+                    <el-form-item prop="cc" label="抄送">
+                        <!-- cc -->
+                        <el-input v-model="emailSetting.cc"/>
+                    </el-form-item>
+                    <el-form-item prop="subject" label="主题">
+                        <!-- subject -->
+                        <el-input v-model="emailSetting.subject"/>
+                    </el-form-item>
+                    <el-form-item label="内容模板">
+                        <quill-editor v-model="content"
+                                      ref="myQuillEditor"
+                                      :options="editorOption"
+                                      @blur="onEditorBlur"
+                                      @focus="onEditorFocus"
+                                      @ready="onEditorReady"
+                                      @change="onEditorChange"
+                        >
+                        </quill-editor>
+                    </el-form-item>
+                    <el-form-item label="签名">
+                        <quill-editor v-model="content2"
+                                      ref="myQuillEditor2"
+                                      :options="editorOption2"
+                                      @blur="onEditorBlur2"
+                                      @focus="onEditorFocus2"
+                                      @ready="onEditorReady2"
+                                      @change="onEditorChange2"
+                        >
+                        </quill-editor>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button :loading="loading" type="primary" @click="saveConfig">保存</el-button>
+                        <el-button :loading="loading" @click="sendMail">立即发送</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-main>
+        </el-container>
     </div>
 </template>
 
@@ -99,6 +107,8 @@
       this.$nextTick(() => {
         this.$refs.myQuillEditor.$el.offsetParent.className = ''
         this.$refs.myQuillEditor.$el.offsetParent.classList = []
+        this.$refs.myQuillEditor2.$el.offsetParent.className = ''
+        this.$refs.myQuillEditor2.$el.offsetParent.classList = []
       })
       addQuillTitle()
       window.richTextEditor = this.content
@@ -175,6 +185,9 @@
       }
     },
     methods: {
+      goBack () {
+        this.$router.back()
+      },
       onEditorBlur (quill) {
         console.log('editor blur!', quill)
       },
@@ -203,6 +216,7 @@
       },
       addEventListener () {
         ipcRenderer.on(eventTopic.readConfig, (_, saveConfig) => {
+          console.log('readconfig load')
           this.loading = false
           if (!saveConfig) return
           for (let key in this.emailSetting) {
@@ -253,8 +267,13 @@
         })
       },
       sendMail () {
+        let configPath = localStorage.getItem(saveConfigDir)
+        if (!configPath) {
+          this.$message.error('请先保存设置')
+          return
+        }
         this.loading = true
-        ipcRenderer.send(eventTopic.sendMail, localStorage.getItem(saveConfigDir), this.content)
+        ipcRenderer.send(eventTopic.sendMail, configPath, this.content)
       }
     },
     computed: {

@@ -18,6 +18,14 @@ const winURL = process.env.NODE_ENV === 'development'
   : `file://${__dirname}/index.html`
 
 function createWindow () {
+  createMainWindow()
+  // 绑定进程通信事件
+  rendererEvent(mainWindow)
+  // 初始化系统托盘
+  createTray(mainWindow)
+}
+
+function createMainWindow () {
   /**
    * Initial window options
    */
@@ -26,9 +34,6 @@ function createWindow () {
     useContentSize: true,
     width: 1000
   })
-
-  // 初始化系统托盘
-  createTray(mainWindow)
 
   mainWindow.loadURL(winURL)
 
@@ -41,10 +46,10 @@ function createWindow () {
     mainWindow.hide()
     e.preventDefault()
   })
-}
 
-// 绑定进程通信事件
-rendererEvent()
+  mainWindow.setSkipTaskbar(true)
+  mainWindow.hide()
+}
 
 app.on('ready', createWindow)
 
