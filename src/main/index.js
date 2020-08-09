@@ -1,8 +1,8 @@
 'use strict'
 
 import {app, BrowserWindow} from 'electron'
-// 绑定进程通信事件
-import './rendererEvent'
+import rendererEvent from './rendererEvent'
+import createTray from './tray'
 
 /**
  * Set `__static` path to static files in production
@@ -27,12 +27,24 @@ function createWindow () {
     width: 1000
   })
 
+  // 初始化系统托盘
+  createTray(mainWindow)
+
   mainWindow.loadURL(winURL)
 
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+
+  mainWindow.on('close', (e) => {
+    mainWindow.setSkipTaskbar(true)
+    mainWindow.hide()
+    e.preventDefault()
+  })
 }
+
+// 绑定进程通信事件
+rendererEvent()
 
 app.on('ready', createWindow)
 

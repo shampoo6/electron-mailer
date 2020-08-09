@@ -254,7 +254,7 @@
       },
       sendMail () {
         this.loading = true
-        ipcRenderer.send(eventTopic.sendMail, localStorage.getItem(saveConfigDir))
+        ipcRenderer.send(eventTopic.sendMail, localStorage.getItem(saveConfigDir), this.content)
       }
     },
     computed: {

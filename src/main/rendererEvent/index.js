@@ -4,10 +4,6 @@ import fs from 'fs'
 import path from 'path'
 import nodemailer from 'nodemailer'
 
-ipcMain.once(eventTopic.saveConfig, saveHandler)
-ipcMain.once(eventTopic.readConfig, readFileHandler)
-ipcMain.once(eventTopic.sendMail, sendMailHandler)
-
 function saveHandler (event, saveConfig) {
   checkDir(saveConfig.path).then(() => {
     let savePath = path.join(saveConfig.path, 'config.json')
@@ -57,7 +53,7 @@ function readFileHandler (event, configPath) {
   })
 }
 
-function sendMailHandler (event, configPath) {
+function sendMailHandler (event, configPath, content) {
   // 读取配置
   fs.readFile(path.join(configPath, 'config.json'), (err, data) => {
     if (err) {
@@ -66,6 +62,7 @@ function sendMailHandler (event, configPath) {
     } else {
       try {
         let config = JSON.parse(data.toString())
+        config.content = content
         sendMail(config, event)
       } catch (e) {
         event.sender.send(eventTopic.sendMail, e)
@@ -92,4 +89,10 @@ async function sendMail (config, event) {
       event.sender.send(eventTopic.sendMail)
     }
   })
+}
+
+export default () => {
+  ipcMain.once(eventTopic.saveConfig, saveHandler)
+  ipcMain.once(eventTopic.readConfig, readFileHandler)
+  ipcMain.once(eventTopic.sendMail, sendMailHandler)
 }
