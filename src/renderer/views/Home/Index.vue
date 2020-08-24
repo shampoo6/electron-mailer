@@ -7,6 +7,9 @@
             <el-button type="primary" @click="gotoSendMail">发送邮件</el-button>
         </div>
         <div class="item">
+            <el-button type="primary" @click="gotoTaskManage">任务管理</el-button>
+        </div>
+        <div class="item">
             <el-button type="danger" @click="quit">退出</el-button>
         </div>
     </div>
@@ -32,6 +35,9 @@
       },
       gotoSendMail () {
         this.$router.push('/sendMail')
+      },
+      gotoTaskManage () {
+        this.$router.push('/taskManage/list')
       },
       quit () {
         this.$eventHandler.quit()

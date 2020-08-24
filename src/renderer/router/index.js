@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import TaskManage from '../views/TaskManage/Index'
 
 Vue.use(Router)
 
@@ -20,6 +21,22 @@ const router = new Router({
       path: '/sendMail',
       name: 'sendMail',
       component: require('@/views/SendMail/Index').default
+    },
+    {
+      path: '/taskManage',
+      component: TaskManage,
+      children: [
+        {
+          path: 'list',
+          name: 'list',
+          component: require('@/views/TaskManage/List').default
+        },
+        {
+          path: 'edit',
+          name: 'edit',
+          component: require('@/views/TaskManage/Edit').default
+        }
+      ]
     },
     {
       path: '*',
