@@ -1,6 +1,8 @@
 export default {
-  saveConfig: 'saveConfig',
-  readConfig: 'readConfig',
+  saveConfig: 'saveConfig', // discard
+  saveTemplate: 'saveTemplate',
+  readConfig: 'readConfig', // discard
+  readTemplate: 'readTemplate',
   sendMail: 'sendMail',
   quit: 'quit',
   readyToSend: 'readyToSend',

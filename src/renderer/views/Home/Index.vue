@@ -1,35 +1,59 @@
 <template>
-    <div>
-        <el-button type="primary" @click="gotoSetting">设置</el-button>
-        <el-button type="primary" @click="gotoSendbox">发送邮件</el-button>
-        <el-button type="danger" @click="quit">退出</el-button>
+    <div class="container" :style="{height: height}">
+        <div class="item">
+            <el-button type="primary" @click="gotoSetting">设置模板</el-button>
+        </div>
+        <div class="item">
+            <el-button type="primary" @click="gotoSendMail">发送邮件</el-button>
+        </div>
+        <div class="item">
+            <el-button type="danger" @click="quit">退出</el-button>
+        </div>
     </div>
 </template>
 
 <script>
-  import {ipcRenderer} from 'electron'
-  import eventTopic from '../../../common/eventTopic'
-
   export default {
+    mounted () {
+      document.body.style.overflow = 'hidden'
+      this.height = window.innerHeight + 'px'
+      window.onresize = () => {
+        this.height = window.innerHeight + 'px'
+      }
+    },
+    data () {
+      return {
+        height: window.innerHeight
+      }
+    },
     methods: {
       gotoSetting () {
         this.$router.push('/setting')
       },
-      gotoSendbox () {
-        let configPath = localStorage.getItem('saveConfigDir')
-        if (!configPath) {
-          this.$message.info('请先进行设置')
-        } else {
-          this.$router.push('/sendbox')
-        }
+      gotoSendMail () {
+        this.$router.push('/sendMail')
       },
       quit () {
-        ipcRenderer.send(eventTopic.quit)
+        this.$eventHandler.quit()
       }
+    },
+    beforeDestroy () {
+      window.onresize = null
+      document.body.style.overflow = 'scroll'
     }
   }
 </script>
 
 <style scoped>
+    .container {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
 
+    .item {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
 </style>

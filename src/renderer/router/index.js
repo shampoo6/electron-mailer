@@ -17,9 +17,9 @@ const router = new Router({
       component: require('@/views/Setting/Index').default
     },
     {
-      path: '/sendbox',
-      name: 'sendbox',
-      component: require('@/views/SendBox/Index').default
+      path: '/sendMail',
+      name: 'sendMail',
+      component: require('@/views/SendMail/Index').default
     },
     {
       path: '*',

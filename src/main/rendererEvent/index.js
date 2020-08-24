@@ -8,7 +8,7 @@ const CronJob = require('cron').CronJob
 // renderer.js:7 D:\Program Files\electron-mailer\resources\app.asar
 const saveDir = process.env.NODE_ENV === 'development'
   ? 'd:/conf'
-  : path.join(path.dirname(app.getAppPath()), '/conf')
+  : path.join(path.dirname(app.getAppPath()), '/conf') // 这是安装好后，应用路径下创建一两个conf文件夹
 const savePath = path.join(saveDir, 'config.json')
 let taskJob
 
@@ -16,8 +16,9 @@ function saveHandler (event, saveConfig) {
   checkDir(saveDir).then(() => {
     fs.writeFile(savePath, JSON.stringify(saveConfig), err => {
       if (err) throw err
-      event.sender.send(eventTopic.saveConfig, null, saveConfig.path)
-      startTaskJobHandler(null, new Date(saveConfig.time))
+      event.sender.send(eventTopic.saveConfig)
+      // event.sender.send(eventTopic.saveConfig, null, saveConfig.path)
+      // startTaskJobHandler(null, new Date(saveConfig.time))
     })
   }).catch(error => {
     console.error(error)
@@ -60,35 +61,16 @@ function readFileHandler (event, configPath) {
   })
 }
 
-function sendMailHandler (event, configPath, content) {
-  console.log('send mail be called!!!')
-  // 读取配置
-  fs.readFile(savePath, (err, data) => {
-    if (err) {
-      console.error(err)
-      event.sender.send(eventTopic.sendMail, err)
-    } else {
-      try {
-        let config = JSON.parse(data.toString())
-        config.content = content
-        sendMail(config, event)
-      } catch (e) {
-        event.sender.send(eventTopic.sendMail, e)
-      }
-    }
-  })
-}
-
-async function sendMail (config, event) {
-  let poolConfig = `smtps://${config.email}:${config.pwd}@${config.smtp}/?pool=true`
-  let transporter = nodemailer.createTransport(poolConfig)
+async function sendMail (event, template) {
+  let poolTemplate = `smtps://${template.email}:${template.pwd}@${template.smtp}/?pool=true`
+  let transporter = nodemailer.createTransport(poolTemplate)
   // send mail with defined transport object
   await transporter.sendMail({
-    from: `"${config.name}" <${config.email}>`, // sender address
-    to: config.to, // list of receivers
-    cc: config.cc,
-    subject: config.subject, // Subject line
-    html: `${config.content}<br/>${config.sign}` // html body
+    from: `"${template.name}" <${template.email}>`, // sender address
+    to: template.to, // list of receivers
+    cc: template.cc,
+    subject: template.subject, // Subject line
+    html: `${template.content}<br/>${template.sign}` // html body
   }, (err, msg) => {
     if (err) {
       console.error(err)
@@ -117,25 +99,63 @@ function startTaskJobHandler (event, date) {
   console.log('taskJob be started: ' + taskJob.cronTime)
 }
 
-function initTaskJob () {
+// function initTaskJob () {
+//   fs.readFile(savePath, (err, data) => {
+//     if (err) {
+//       console.error(err)
+//     } else {
+//       let config = JSON.parse(data.toString())
+//       let date = new Date(config.time)
+//       startTaskJobHandler(null, date)
+//     }
+//   })
+// }
+
+/**
+ * 读取模板
+ */
+function readTemplate () {
   fs.readFile(savePath, (err, data) => {
     if (err) {
       console.error(err)
+      mainWindow.webContents.send(eventTopic.readTemplate)
     } else {
-      let config = JSON.parse(data.toString())
-      let date = new Date(config.time)
-      startTaskJobHandler(null, date)
+      try {
+        mainWindow.webContents.send(eventTopic.readTemplate, JSON.parse(data.toString()))
+      } catch (e) {
+        console.error(e)
+        mainWindow.webContents.send(eventTopic.readTemplate)
+      }
     }
+  })
+}
+
+/**
+ * 保存模板
+ */
+function saveTemplate (event, template) {
+  checkDir(saveDir).then(() => {
+    fs.writeFile(savePath, JSON.stringify(template), err => {
+      if (err) throw err
+      event.sender.send(eventTopic.saveTemplate)
+      // event.sender.send(eventTopic.saveConfig, null, saveConfig.path)
+      // startTaskJobHandler(null, new Date(saveConfig.time))
+    })
+  }).catch(error => {
+    console.error(error)
+    event.sender.send(eventTopic.saveTemplate, error)
   })
 }
 
 let mainWindow
 export default (win) => {
   mainWindow = win
-  initTaskJob()
+  // initTaskJob()
   ipcMain.once(eventTopic.saveConfig, saveHandler)
-  ipcMain.once(eventTopic.readConfig, readFileHandler)
-  ipcMain.once(eventTopic.sendMail, sendMailHandler)
+  ipcMain.once(eventTopic.readConfig, readFileHandler) // discard
+  ipcMain.on(eventTopic.readTemplate, readTemplate) // 读取模板，启动app时只会读一次
+  ipcMain.on(eventTopic.saveTemplate, saveTemplate) // 保存模板
+  ipcMain.on(eventTopic.sendMail, sendMail)
   ipcMain.on(eventTopic.startTaskJob, startTaskJobHandler)
   ipcMain.once(eventTopic.quit, () => {
     mainWindow.destroy()

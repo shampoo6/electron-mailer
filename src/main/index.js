@@ -48,8 +48,8 @@ function createMainWindow () {
     e.preventDefault()
   })
 
-  mainWindow.setSkipTaskbar(true)
-  mainWindow.hide()
+  // mainWindow.setSkipTaskbar(true)
+  // mainWindow.hide()
 }
 
 app.on('ready', createWindow)

@@ -2,36 +2,34 @@
     <div>
         <el-container>
             <el-header style="padding-top:20px;">
-                <el-page-header @back="goBack" content="设置">
+                <el-page-header @back="goBack" content="发送邮件">
                 </el-page-header>
             </el-header>
             <el-main>
                 <MailEditor ref="mailEditor">
                     <template slot="footer">
-                        <el-button :loading="loading" type="primary" @click="saveTemplate">保存</el-button>
+                        <el-button :loading="loading" type="primary" @click="sendMail">发送</el-button>
                     </template>
                 </MailEditor>
             </el-main>
+            <el-footer>
+            </el-footer>
         </el-container>
     </div>
 </template>
 
 <script>
-  import 'quill/dist/quill.core.css'
-  import 'quill/dist/quill.snow.css'
-  import 'quill/dist/quill.bubble.css'
-
-  import vueEventTopic from '../../utils/vueEventTopic'
   import MailEditor from '../../components/MailEditor'
+  import vueEventTopic from '../../utils/vueEventTopic'
 
   export default {
+    name: 'Index',
     components: {
       MailEditor
     },
-    name: 'index',
     mounted () {
-      // 读取配置
       this.readTemplate()
+      this.initEvent()
     },
     data () {
       return {
@@ -39,6 +37,17 @@
       }
     },
     methods: {
+      initEvent () {
+        this.$eventHandler.$on(vueEventTopic.sendMailOver, err => {
+          if (err) {
+            console.error(err)
+            this.$message.error('发送失败')
+          } else {
+            this.$message.success('发送成功')
+          }
+          this.loading = false
+        })
+      },
       goBack () {
         this.$router.back()
       },
@@ -46,23 +55,12 @@
         let template = this.$store.state.Mail.mailTemplate
         this.$refs.mailEditor.setMailTemplate(template)
       },
-      saveTemplate () {
+      sendMail () {
         this.$refs.mailEditor.getMailTemplate().then(template => {
-          // 获取config
           this.loading = true
-          let config = Object.assign({}, template)
-          this.$eventHandler.$once(vueEventTopic.saveTemplateOver, err => {
-            this.loading = false
-            if (err) {
-              console.error(err)
-              this.$message.error('保存失败')
-            } else {
-              // 保存到store
-              this.$store.dispatch('a_saveMailTemplate', config)
-              this.$message.success('保存成功')
-            }
-          })
-          this.$eventHandler.saveTemplate(config)
+          this.$eventHandler.sendMail(template)
+        }).catch(reason => {
+          console.error(reason)
         })
       }
     }
@@ -70,4 +68,5 @@
 </script>
 
 <style scoped>
+
 </style>
