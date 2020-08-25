@@ -32,7 +32,7 @@ const router = new Router({
           component: require('@/views/TaskManage/List').default
         },
         {
-          path: 'edit',
+          path: 'edit/:action/:id/:time',
           name: 'edit',
           component: require('@/views/TaskManage/Edit').default
         }

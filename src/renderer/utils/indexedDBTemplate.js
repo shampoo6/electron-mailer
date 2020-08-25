@@ -17,14 +17,6 @@ class IndexedDBTemplate {
     this.storeName = 'task'
   }
 
-  /**
-   * 查询所有任务
-   * 当执行queryTask时，如果任务已经执行，那么执行后7天应自动删除
-   * 如果任务报错，错误任务也将在7天后自动删除
-   */
-  queryTask () {
-  }
-
   async get (id) {
     return (await this.db).get(this.storeName, id)
   }
@@ -47,9 +39,15 @@ class IndexedDBTemplate {
    * @param execTime
    */
   async updateTask (id, mailTemplate, execTime) {
-    let task = new Task(mailTemplate, execTime)
-    task.id = id
-    console.log(task)
+    return this.get(id).then(task => {
+      task.mailTemplate = mailTemplate
+      task.execTime = execTime
+      task.updateTime = Date.now()
+      return this.updateLogic(task)
+    })
+  }
+
+  async updateLogic (task) {
     return (await this.db).put(this.storeName, task, task.id)
   }
 

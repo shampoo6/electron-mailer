@@ -8,11 +8,17 @@ import store from './store'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 
+import moment from 'moment'
+
 Vue.use(ElementUI)
 
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'))
 Vue.http = Vue.prototype.$http = axios
 Vue.config.productionTip = false
+
+Vue.filter('timeFormat', value => {
+  return moment(value).format('YYYY-MM-DD HH:mm:ss')
+})
 
 new Vue({
   components: {App},
