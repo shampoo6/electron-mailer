@@ -5,6 +5,15 @@ import eventHandler from './utils/eventHandler.js'
 import cornManager from './utils/cornManager'
 import createTray from './tray'
 import '../renderer/store'
+import updateElectronApp from 'update-electron-app'
+import isDev from 'electron-is-dev'
+
+if (!isDev) {
+  updateElectronApp({
+    repo: 'shampoo6/electron-mailer',
+    updateInterval: '1 hour'
+  })
+}
 
 /**
  * Set `__static` path to static files in production
