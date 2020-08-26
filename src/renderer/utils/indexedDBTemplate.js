@@ -1,4 +1,4 @@
-import {Task} from './task'
+import {Task, TaskStatus} from './task'
 // , deleteDB, wrap, unwrap
 import {openDB} from 'idb'
 
@@ -11,6 +11,10 @@ class IndexedDBTemplate {
    * 表名
    */
   storeName
+  /**
+   * 写操作成功回调钩子
+   */
+  writeCompleteHook
 
   constructor () {
     this.db = initDB()
@@ -28,8 +32,15 @@ class IndexedDBTemplate {
    */
   async createTask (mailTemplate, execTime) {
     let task = new Task(mailTemplate, execTime)
-    console.log(task)
-    return (await this.db).put(this.storeName, task, task.id)
+    // return (await this.db).put(this.storeName, task, task.id)
+    return new Promise(resolve => {
+      this.db.then(db => {
+        db.put(this.storeName, task, task.id).then(id => {
+          if (this.writeCompleteHook) this.writeCompleteHook()
+          resolve(id)
+        })
+      })
+    })
   }
 
   /**
@@ -47,8 +58,23 @@ class IndexedDBTemplate {
     })
   }
 
+  async failTask (id) {
+    let task = await this.get(id)
+    task.status = TaskStatus.Failure
+    task.updateTime = Date.now()
+    this.updateLogic(task)
+  }
+
   async updateLogic (task) {
-    return (await this.db).put(this.storeName, task, task.id)
+    // return (await this.db).put(this.storeName, task, task.id)
+    return new Promise(resolve => {
+      this.db.then(db => {
+        db.put(this.storeName, task, task.id).then(id => {
+          if (this.writeCompleteHook) this.writeCompleteHook()
+          resolve(id)
+        })
+      })
+    })
   }
 
   /**
@@ -56,8 +82,16 @@ class IndexedDBTemplate {
    * @param id
    * @returns {Promise<*>}
    */
-  async remove (id) {
-    return (await this.db).delete(this.storeName, id)
+  async remove (id, rejectCallback) {
+    // return (await this.db).delete(this.storeName, id)
+    return new Promise(resolve => {
+      this.db.then(db => {
+        db.delete(this.storeName, id).then(() => {
+          if (!rejectCallback && this.writeCompleteHook) this.writeCompleteHook()
+          resolve()
+        })
+      })
+    })
   }
 
   async list () {

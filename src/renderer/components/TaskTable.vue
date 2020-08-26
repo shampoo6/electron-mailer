@@ -1,5 +1,5 @@
 <template>
-    <el-table :data="tableData" border stripe>
+    <el-table :data="tableData" border stripe :default-sort="{prop: 'updateTime', order: 'descending'}">
         <el-table-column prop="id" label="序号"/>
         <el-table-column prop="status" label="状态">
             <template slot-scope="scope">

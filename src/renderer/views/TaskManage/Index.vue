@@ -15,8 +15,13 @@
 </template>
 
 <script>
+  import dbTemplate from '../../utils/indexedDBTemplate'
+
   export default {
     name: 'TaskManage',
+    created () {
+      dbTemplate.writeCompleteHook = this.$eventHandler.restartScanTask
+    },
     methods: {
       goBack () {
         this.$router.back()

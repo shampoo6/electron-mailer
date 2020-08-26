@@ -1,7 +1,8 @@
 'use strict'
 
 import {app, BrowserWindow} from 'electron'
-import rendererEvent from './rendererEvent'
+import eventHandler from './utils/eventHandler.js'
+import cornManager from './utils/cornManager'
 import createTray from './tray'
 import '../renderer/store'
 
@@ -21,7 +22,9 @@ const winURL = process.env.NODE_ENV === 'development'
 function createWindow () {
   createMainWindow()
   // 绑定进程通信事件
-  rendererEvent(mainWindow)
+  eventHandler.init(mainWindow)
+  // 开始扫描任务
+  cornManager.beginScanTask()
   // 初始化系统托盘
   createTray(mainWindow)
 }

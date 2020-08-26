@@ -42,6 +42,7 @@
   import TaskTable from '../../components/TaskTable'
   import dbTemplate from '../../utils/indexedDBTemplate'
   import {TaskStatus} from '../../utils/task'
+  import vueEventTopic from '../../utils/vueEventTopic'
 
   export default {
     components: {
@@ -50,6 +51,9 @@
     name: 'List',
     created () {
       this.list()
+      this.$eventHandler.$on(vueEventTopic.scanTaskRefresh, () => {
+        this.list()
+      })
     },
     data () {
       return {
