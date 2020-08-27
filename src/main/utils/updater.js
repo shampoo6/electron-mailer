@@ -1,6 +1,6 @@
 import {dialog} from 'electron'
 import {autoUpdater} from 'electron-updater'
-import pjson from '../../package.json'
+import pjson from '../../../package.json'
 
 export default () => {
   let message = {
