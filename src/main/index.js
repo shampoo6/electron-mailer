@@ -6,6 +6,13 @@ import cornManager from './utils/cornManager'
 import updater from './utils/updater'
 import createTray from './tray'
 import '../renderer/store'
+import log from 'electron-log'
+import path from 'path'
+
+// todo 应该修改一个正式的地址代替此代码
+log.transports.file.file = process.env.NODE_ENV === 'development'
+  ? 'd:/logs/myLog.log'
+  : path.join(path.dirname(app.getAppPath()), '/logs/myLog.log')
 
 /**
  * Set `__static` path to static files in production

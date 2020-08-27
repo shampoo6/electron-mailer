@@ -1,6 +1,6 @@
 import {dialog} from 'electron'
 import {autoUpdater} from 'electron-updater'
-import pjson from '../../../package.json'
+import log from 'electron-log'
 
 export default () => {
   let message = {
@@ -9,13 +9,11 @@ export default () => {
     updateAva: '检测到新版本，正在下载……',
     updateNotAva: '现在使用的就是最新版本，不用更新'
   }
-  console.log('npm version is: ' + pjson.version)
-  const loadUrl = `https://github.com/shampoo6/electron-mailer/releases/download/v${pjson.version}/`
-  console.log(loadUrl)
-  // const uploadUrl = 'http://61.4.184.177:7799/download/' // 下载地址，不加后面的**.exe
-  autoUpdater.setFeedURL(loadUrl)
-  autoUpdater.on('error', () => {
+  // const loadUrl = `http://127.0.0.1:1024/`
+  // autoUpdater.setFeedURL(loadUrl)
+  autoUpdater.on('error', (e) => {
     dialog.showErrorBox('错误', message.error)
+    log.error(e)
   })
   autoUpdater.on('checking-for-update', function () {
     dialog.showMessageBox({
@@ -35,9 +33,16 @@ export default () => {
       message: message.updateNotAva
     })
   })
+
+  // autoUpdater.checkForUpdates().then((updateCheckResult) => {
+  //   dialog.showMessageBox({
+  //     title: 'checkForUpdates提示',
+  //     message: JSON.stringify(updateCheckResult)
+  //   })
+  // })
   autoUpdater.checkForUpdatesAndNotify().then()
   dialog.showMessageBox({
     title: '提示',
-    message: 'checkForUpdatesAndNotify 已经调用v0.0.7'
+    message: 'checkForUpdatesAndNotify 已经调用v0.0.9'
   })
 }
