@@ -69,7 +69,7 @@ function startAutoUpdate () {
     dialog.showMessageBox({
       type: 'info',
       title: '提示',
-      message: '自动更新已启动'
+      message: '看到这句话，说明你已经更新成功啦'
     })
   }
 }
