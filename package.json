@@ -22,7 +22,10 @@
   },
   "build": {
     "publish": [
-      "github"
+      {
+        "provider": "generic",
+        "url": "https://github.com/shampoo6/electron-mailer/releases/download/v0.0.8/"
+      }
     ],
     "extraResources": [
       "static/"
