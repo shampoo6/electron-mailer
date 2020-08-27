@@ -38,6 +38,6 @@ export default () => {
   autoUpdater.checkForUpdatesAndNotify().then()
   dialog.showMessageBox({
     title: '提示',
-    message: 'checkForUpdatesAndNotify 已经调用'
+    message: 'checkForUpdatesAndNotify 已经调用v0.0.7'
   })
 }
