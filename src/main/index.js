@@ -1,11 +1,11 @@
 'use strict'
 
-import {app, BrowserWindow, dialog} from 'electron'
+import {app, BrowserWindow} from 'electron'
 import eventHandler from './utils/eventHandler.js'
 import cornManager from './utils/cornManager'
+import updater from './utils/updater'
 import createTray from './tray'
 import '../renderer/store'
-import updateElectronApp from 'update-electron-app'
 
 /**
  * Set `__static` path to static files in production
@@ -61,16 +61,7 @@ function createMainWindow () {
 
 function startAutoUpdate () {
   if (process.env.NODE_ENV !== 'development') {
-    updateElectronApp({
-      repo: 'shampoo6/electron-mailer',
-      updateInterval: '1 hour'
-    })
-    // todo
-    dialog.showMessageBox({
-      type: 'info',
-      title: '提示',
-      message: '看到这句话，说明你已经更新成功啦'
-    })
+    updater()
   }
 }
 
@@ -87,23 +78,3 @@ app.on('activate', () => {
     createWindow()
   }
 })
-
-/**
- * Auto Updater
- *
- * Uncomment the following code below and install `electron-updater` to
- * support auto updating. Code Signing with a valid certificate is required.
- * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-electron-builder.html#auto-updating
- */
-
-/*
-import { autoUpdater } from 'electron-updater'
-
-autoUpdater.on('update-downloaded', () => {
-  autoUpdater.quitAndInstall()
-})
-
-app.on('ready', () => {
-  if (process.env.NODE_ENV === 'production') autoUpdater.checkForUpdates()
-})
- */

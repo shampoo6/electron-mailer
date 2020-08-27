@@ -21,6 +21,9 @@
     "postinstall": "npm run lint:fix"
   },
   "build": {
+    "publish": [
+      "github"
+    ],
     "extraResources": [
       "static/"
     ],
@@ -64,11 +67,11 @@
   "dependencies": {
     "axios": "^0.18.0",
     "cron": "^1.8.2",
+    "electron-updater": "^4.3.4",
     "element-ui": "^2.13.2",
     "idb": "^5.0.4",
     "moment": "^2.27.0",
     "nodemailer": "^6.4.11",
-    "update-electron-app": "^1.5.0",
     "uuid": "^8.3.0",
     "vue": "^2.5.16",
     "vue-electron": "^1.0.6",
