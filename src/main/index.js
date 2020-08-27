@@ -1,19 +1,11 @@
 'use strict'
 
-import {app, BrowserWindow} from 'electron'
+import {app, BrowserWindow, dialog} from 'electron'
 import eventHandler from './utils/eventHandler.js'
 import cornManager from './utils/cornManager'
 import createTray from './tray'
 import '../renderer/store'
 import updateElectronApp from 'update-electron-app'
-import isDev from 'electron-is-dev'
-
-if (!isDev) {
-  updateElectronApp({
-    repo: 'shampoo6/electron-mailer',
-    updateInterval: '1 hour'
-  })
-}
 
 /**
  * Set `__static` path to static files in production
@@ -36,6 +28,8 @@ function createWindow () {
   cornManager.beginScanTask()
   // 初始化系统托盘
   createTray(mainWindow)
+  // 启动自动更新
+  startAutoUpdate()
 }
 
 function createMainWindow () {
@@ -47,7 +41,8 @@ function createMainWindow () {
     useContentSize: true,
     width: 1000
   })
-  // mainWindow.webContents.openDevTools()
+  // todo
+  mainWindow.webContents.openDevTools()
   mainWindow.loadURL(winURL)
 
   mainWindow.on('closed', () => {
@@ -62,6 +57,21 @@ function createMainWindow () {
 
   // mainWindow.setSkipTaskbar(true)
   // mainWindow.hide()
+}
+
+function startAutoUpdate () {
+  if (process.env.NODE_ENV !== 'development') {
+    updateElectronApp({
+      repo: 'shampoo6/electron-mailer',
+      updateInterval: '1 hour'
+    })
+    // todo
+    dialog.showMessageBox({
+      type: 'info',
+      title: '提示',
+      message: '自动更新已启动'
+    })
+  }
 }
 
 app.on('ready', createWindow)

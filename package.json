@@ -64,7 +64,6 @@
   "dependencies": {
     "axios": "^0.18.0",
     "cron": "^1.8.2",
-    "electron-is-dev": "^1.2.0",
     "element-ui": "^2.13.2",
     "idb": "^5.0.4",
     "moment": "^2.27.0",
