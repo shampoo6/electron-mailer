@@ -1,6 +1,6 @@
 {
   "name": "electron-mailer",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "author": "shampoo6 <shampoo6@163.com>",
   "description": "An electron-vue project",
   "license": null,
@@ -21,7 +21,9 @@
     "postinstall": "npm run lint:fix"
   },
   "build": {
-    "publish": ["github"],
+    "publish": [
+      "github"
+    ],
     "extraResources": [
       "static/"
     ],
