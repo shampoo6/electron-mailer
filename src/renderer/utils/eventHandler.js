@@ -45,12 +45,13 @@ class EventHandler {
             this.$emit(vueEventTopic.scanTaskRefresh)
           })
         })
-        ipcRenderer.on(eventTopic.failTask, (_, list) => {
-          let promiseList = []
-          list.forEach(id => {
-            promiseList.push(dbTemplate.failTask(id))
+        ipcRenderer.on(eventTopic.saveTask, (_, task) => {
+          dbTemplate.saveTask(task, true).then(() => {
+            this.$emit(vueEventTopic.scanTaskRefresh)
           })
-          Promise.all(promiseList).then(() => {
+        })
+        ipcRenderer.on(eventTopic.saveTaskList, (_, taskList) => {
+          dbTemplate.saveTaskList(taskList, true).then(() => {
             this.$emit(vueEventTopic.scanTaskRefresh)
           })
         })

@@ -10,6 +10,8 @@ import 'element-ui/lib/theme-chalk/index.css'
 
 import moment from 'moment'
 
+moment.locale('zh-cn')
+
 Vue.use(ElementUI)
 
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'))
@@ -26,13 +28,3 @@ new Vue({
   store,
   template: '<App/>'
 }).$mount('#app')
-
-// ipcRenderer.on(eventTopic.readyToSend, () => {
-//   if (_app.$route.path !== '/sendbox') {
-//     _app.$router.push('/sendbox')
-//   }
-// })
-// ipcRenderer.on(eventTopic.readConfig, (_, saveConfig) => {
-//   console.log(saveConfig)
-//   _app.$store.dispatch('saveMailConfig', saveConfig)
-// })

@@ -31,7 +31,7 @@
                     <TaskTable :table-data="waiting" @remove="remove"/>
                 </el-tab-pane>
                 <el-tab-pane label="已完成" name="done">
-                    <TaskTable :table-data="done"/>
+                    <TaskTable :table-data="done" @remove="remove"/>
                 </el-tab-pane>
             </el-tabs>
         </el-row>

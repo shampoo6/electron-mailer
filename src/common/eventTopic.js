@@ -6,5 +6,6 @@ export default {
   getTaskList: 'getTaskList',
   restartScanTask: 'restartScanTask', // 重启后台扫描任务
   removeTask: 'removeTask',
-  failTask: 'failTask'
+  saveTask: 'saveTask',
+  saveTaskList: 'saveTaskList'
 }

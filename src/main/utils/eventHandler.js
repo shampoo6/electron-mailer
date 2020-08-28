@@ -28,7 +28,7 @@ function checkDir (path) {
   })
 }
 
-async function sendMail (event, template) {
+async function sendMail (event, template, callback) {
   let poolTemplate = `smtps://${template.email}:${template.pwd}@${template.smtp}/?pool=true`
   let transporter = nodemailer.createTransport(poolTemplate)
   // send mail with defined transport object
@@ -40,7 +40,8 @@ async function sendMail (event, template) {
     html: `${template.content}<br/>${template.sign}` // html body
   }, (err, msg) => {
     if (err) {
-      console.error(err)
+      console.log.error(err)
+      console.log.error(msg)
       if (event) {
         event.sender.send(eventTopic.sendMail, err)
       }
@@ -48,6 +49,9 @@ async function sendMail (event, template) {
       if (event) {
         event.sender.send(eventTopic.sendMail)
       }
+    }
+    if (callback) {
+      callback(err, msg)
     }
   })
 }
@@ -58,13 +62,13 @@ async function sendMail (event, template) {
 function readTemplate () {
   fs.readFile(savePath, (err, data) => {
     if (err) {
-      console.error(err)
+      console.log.error(err)
       mainWindow.webContents.send(eventTopic.readTemplate)
     } else {
       try {
         mainWindow.webContents.send(eventTopic.readTemplate, JSON.parse(data.toString()))
       } catch (e) {
-        console.error(e)
+        console.log.error(e)
         mainWindow.webContents.send(eventTopic.readTemplate)
       }
     }
@@ -83,7 +87,7 @@ function saveTemplate (event, template) {
       // startTaskJobHandler(null, new Date(saveConfig.time))
     })
   }).catch(error => {
-    console.error(error)
+    console.log.error(error)
     event.sender.send(eventTopic.saveTemplate, error)
   })
 }
@@ -135,8 +139,12 @@ class EventHandler {
     mainWindow.webContents.send(eventTopic.removeTask, list)
   }
 
-  failTask (list) {
-    mainWindow.webContents.send(eventTopic.failTask, list)
+  saveTask (task) {
+    mainWindow.webContents.send(eventTopic.saveTask, task)
+  }
+
+  saveTaskList (taskList) {
+    mainWindow.webContents.send(eventTopic.saveTaskList, taskList)
   }
 
   addEventListener () {

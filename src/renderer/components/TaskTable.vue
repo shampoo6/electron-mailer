@@ -11,6 +11,11 @@
                 {{scope.row.execTime|timeFormat}}
             </template>
         </el-table-column>
+        <el-table-column label="星期几" sortable>
+            <template slot-scope="scope">
+                {{scope.row.execTime|dayFormat}}
+            </template>
+        </el-table-column>
         <el-table-column prop="createTime" label="创建时间" sortable>
             <template slot-scope="scope">
                 {{scope.row.createTime|timeFormat}}
@@ -33,6 +38,7 @@
 
 <script>
   import {TaskStatus} from '../utils/task'
+  import moment from 'moment'
 
   const statusTranslate = {
     success: '执行成功',
@@ -75,6 +81,11 @@
       },
       remove (id) {
         this.$emit('remove', id)
+      }
+    },
+    filters: {
+      dayFormat (value) {
+        return moment(value).format('dddd')
       }
     }
   }

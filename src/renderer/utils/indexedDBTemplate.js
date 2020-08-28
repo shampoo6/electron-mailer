@@ -1,6 +1,7 @@
-import {Task, TaskStatus} from './task'
+import {Task} from './task'
 // , deleteDB, wrap, unwrap
 import {openDB} from 'idb'
+import {v4 as uuidv4} from 'uuid'
 
 class IndexedDBTemplate {
   /**
@@ -53,26 +54,37 @@ class IndexedDBTemplate {
     return this.get(id).then(task => {
       task.mailTemplate = mailTemplate
       task.execTime = execTime
-      task.updateTime = Date.now()
-      return this.updateLogic(task)
+      return this.saveTask(task)
     })
   }
 
-  async failTask (id) {
-    let task = await this.get(id)
-    task.status = TaskStatus.Failure
-    task.updateTime = Date.now()
-    this.updateLogic(task)
-  }
-
-  async updateLogic (task) {
-    // return (await this.db).put(this.storeName, task, task.id)
+  async saveTask (task, rejectCallback) {
     return new Promise(resolve => {
+      if (!task.id) {
+        console.warn('found a no id task')
+        console.warn(task)
+        task.id = uuidv4()
+        console.warn('create new id: ' + task.id)
+      }
+      task.updateTime = Date.now()
       this.db.then(db => {
         db.put(this.storeName, task, task.id).then(id => {
-          if (this.writeCompleteHook) this.writeCompleteHook()
+          if (this.writeCompleteHook && !rejectCallback) this.writeCompleteHook()
           resolve(id)
         })
+      })
+    })
+  }
+
+  async saveTaskList (taskList, rejectCallback) {
+    return new Promise(resolve => {
+      let promiseList = []
+      taskList.forEach(task => {
+        promiseList.push(this.saveTask(task, true))
+      })
+      Promise.all(promiseList).then(() => {
+        if (this.writeCompleteHook && !rejectCallback) this.writeCompleteHook()
+        resolve()
       })
     })
   }

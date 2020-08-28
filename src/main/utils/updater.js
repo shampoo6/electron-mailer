@@ -34,15 +34,5 @@ export default () => {
     })
   })
 
-  // autoUpdater.checkForUpdates().then((updateCheckResult) => {
-  //   dialog.showMessageBox({
-  //     title: 'checkForUpdates提示',
-  //     message: JSON.stringify(updateCheckResult)
-  //   })
-  // })
   autoUpdater.checkForUpdatesAndNotify().then()
-  dialog.showMessageBox({
-    title: '提示',
-    message: 'checkForUpdatesAndNotify 已经调用v0.0.9'
-  })
 }
