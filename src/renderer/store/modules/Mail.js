@@ -7,6 +7,7 @@ const state = {
     to: '',
     cc: '',
     subject: '',
+    receiver: '',
     content: '',
     sign: ''
   }

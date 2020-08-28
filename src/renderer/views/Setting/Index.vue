@@ -22,7 +22,7 @@
   import 'quill/dist/quill.bubble.css'
 
   import vueEventTopic from '../../utils/vueEventTopic'
-  import MailEditor from '../../components/MailEditor'
+  import MailEditor from '../../components/MailEditor/MailEditor'
 
   export default {
     components: {
@@ -63,6 +63,8 @@
             }
           })
           this.$eventHandler.saveTemplate(config)
+        }).catch(() => {
+          this.$message.error('验证未通过，请检查信息')
         })
       }
     }

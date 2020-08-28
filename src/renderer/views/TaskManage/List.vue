@@ -82,7 +82,6 @@
         })
       },
       handleClick (tab, event) {
-        console.log(tab, event)
       },
       toAdd () {
         this.$router.push('/taskManage/edit/create/new/new')

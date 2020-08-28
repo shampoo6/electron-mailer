@@ -33,6 +33,11 @@
             <el-form-item prop="subject" label="主题">
                 <!-- subject -->
                 <el-input v-model="mailTemplate.subject"/>
+                <el-button size="mini" @click="resetSubject">重置主题</el-button>
+            </el-form-item>
+            <el-form-item prop="receiver" label="收件人称呼">
+                <!-- receiver -->
+                <el-input v-model="mailTemplate.receiver"/>
             </el-form-item>
             <el-form-item label="内容模板">
                 <quill-editor v-model="mailTemplate.content"
@@ -44,6 +49,7 @@
                               @change="onEditorChange"
                 >
                 </quill-editor>
+                <el-button size="mini" @click="resetContentTemplate">重置内容模板</el-button>
             </el-form-item>
             <el-form-item label="签名">
                 <quill-editor v-model="mailTemplate.sign"
@@ -67,7 +73,8 @@
 
 <script>
   import {quillEditor} from 'vue-quill-editor'
-  import {addQuillTitle} from '../assets/quill-title'
+  import {addQuillTitle} from '../../assets/quill-title'
+  import template from './template.json'
 
   const emailRegex = /^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/
 
@@ -137,6 +144,9 @@
           ],
           subject: [
             {required: true, message: '请输入主题', trigger: 'blur'}
+          ],
+          receiver: [
+            {required: true, message: '请输入收件人称呼', trigger: 'blur'}
           ]
         },
         mailTemplate: {
@@ -146,8 +156,9 @@
           name: '',
           to: '',
           cc: '',
-          subject: '',
-          content: '<h2>I am Example</h2>',
+          subject: template.subjectTemplate,
+          receiver: '',
+          content: template.contentTemplate,
           sign: '<h2>I am Example2</h2>'
         },
         editorOption: {
@@ -160,29 +171,21 @@
     },
     methods: {
       onEditorBlur (quill) {
-        console.log('editor blur!', quill)
       },
       onEditorFocus (quill) {
-        console.log('editor focus!', quill)
       },
       onEditorReady (quill) {
-        console.log('editor ready!', quill)
       },
       onEditorChange ({quill, html, text}) {
-        // console.log('editor change!', quill, html, text)
         this.mailTemplate.content = html
       },
       onEditorBlur2 (quill) {
-        console.log('editor blur!', quill)
       },
       onEditorFocus2 (quill) {
-        console.log('editor focus!', quill)
       },
       onEditorReady2 (quill) {
-        console.log('editor ready!', quill)
       },
       onEditorChange2 ({quill, html, text}) {
-        // console.log('editor change!', quill, html, text)
         this.mailTemplate.sign = html
       },
       getMailTemplate () {
@@ -202,6 +205,12 @@
             this.mailTemplate[key] = template[key]
           }
         }
+      },
+      resetContentTemplate () {
+        this.mailTemplate.content = template.contentTemplate
+      },
+      resetSubject () {
+        this.mailTemplate.subject = template.subjectTemplate
       }
     }
   }

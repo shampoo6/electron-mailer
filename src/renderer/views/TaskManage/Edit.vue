@@ -3,6 +3,7 @@
         <el-form>
             <el-form-item label="发送时间">
                 <el-date-picker
+                        @change="changeTime"
                         v-model="execTime"
                         type="datetime"
                         placeholder="选择日期时间">
@@ -21,9 +22,11 @@
 </template>
 
 <script>
-  import MailEditor from '../../components/MailEditor'
+  import MailEditor from '../../components/MailEditor/MailEditor'
   import dbTemplate from '../../utils/indexedDBTemplate'
   import moment from 'moment'
+  import templateTransform from '../../utils/templateTransform'
+  import temp from '../../components/MailEditor/template.json'
 
   export default {
     components: {
@@ -48,17 +51,25 @@
     },
     methods: {
       readTemplate () {
+        let promise
         if (!this.id) {
-          let template = this.$store.state.Mail.mailTemplate
-          this.$refs.mailEditor.setMailTemplate(template)
+          promise = Promise.resolve(this.$store.state.Mail.mailTemplate)
         } else {
           this.loading = true
-          dbTemplate.get(this.id).then(data => {
-            let template = data.mailTemplate
-            this.$refs.mailEditor.setMailTemplate(template)
+          promise = dbTemplate.get(this.id).then(data => {
+            let _promise = Promise.resolve(data.mailTemplate)
             this.loading = false
+            return _promise
           })
         }
+        promise.then(template => {
+          if (this.$route.params.action === 'copy') {
+            template.subject = temp.subjectTemplate
+            template.content = temp.contentTemplate
+          }
+          template = templateTransform(template, moment(this.execTime))
+          this.$refs.mailEditor.setMailTemplate(template)
+        })
       },
       reset () {
         this.$confirm('确定重置邮件模板为预设值么?', '提示', {
@@ -106,6 +117,11 @@
         }).finally(() => {
           this.loading = false
         })
+      },
+      changeTime () {
+        let template = this.$store.state.Mail.mailTemplate
+        template = templateTransform(template, moment(this.execTime))
+        this.$refs.mailEditor.setMailTemplate(template)
       }
     }
   }

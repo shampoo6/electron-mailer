@@ -25,9 +25,4 @@
         padding: 0;
         margin: 0;
     }
-
-    #app {
-        background-size: 100%;
-        background: url("https://bing.ioliu.cn/v1/rand") no-repeat center center;
-    }
 </style>

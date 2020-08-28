@@ -1,5 +1,6 @@
 <template>
     <div class="container" :style="{height: height}">
+        <h1 style="color: white">Electron Mailer v{{version}}</h1>
         <div class="item">
             <el-button type="primary" @click="gotoSetting">设置模板</el-button>
         </div>
@@ -16,6 +17,8 @@
 </template>
 
 <script>
+  import pjson from '../../../../package.json'
+
   export default {
     mounted () {
       document.body.style.overflow = 'hidden'
@@ -26,6 +29,7 @@
     },
     data () {
       return {
+        version: pjson.version,
         height: window.innerHeight
       }
     },
@@ -56,6 +60,8 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
+        background-size: 100%;
+        background: url("https://bing.ioliu.cn/v1/rand") no-repeat center center;
     }
 
     .item {

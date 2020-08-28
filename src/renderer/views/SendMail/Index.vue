@@ -19,8 +19,10 @@
 </template>
 
 <script>
-  import MailEditor from '../../components/MailEditor'
+  import MailEditor from '../../components/MailEditor/MailEditor'
   import vueEventTopic from '../../utils/vueEventTopic'
+  import templateTransform from '../../utils/templateTransform'
+  import moment from 'moment'
 
   export default {
     name: 'Index',
@@ -53,6 +55,7 @@
       },
       readTemplate () {
         let template = this.$store.state.Mail.mailTemplate
+        template = templateTransform(template, moment())
         this.$refs.mailEditor.setMailTemplate(template)
       },
       sendMail () {

@@ -1,0 +1,4 @@
+{
+  "contentTemplate": "<p>%{r}，你好：</p><p>以下是%{b}的工作总结及%{a}工作计划：</p><p>%{b}工作总结：</p><ul><li>完成vue基础教学备课</li></ul><p><br></p><p>%{a}工作计划：</p><ul><li>进行vue-router的备课</li></ul>",
+  "subjectTemplate": "重庆中心-教学部-%{n}-工作%{j}"
+}
