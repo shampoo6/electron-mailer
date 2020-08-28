@@ -7,5 +7,6 @@ export default {
   restartScanTask: 'restartScanTask', // 重启后台扫描任务
   removeTask: 'removeTask',
   saveTask: 'saveTask',
-  saveTaskList: 'saveTaskList'
+  saveTaskList: 'saveTaskList',
+  sendMessage: 'sendMessage'
 }

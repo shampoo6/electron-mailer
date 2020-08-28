@@ -1,7 +1,10 @@
 import {CronJob} from 'cron'
-import eventHandler from './eventHandler.js'
+import {mc, MessageTopic} from './messageCenter'
 import {TaskStatus} from '../../renderer/utils/task'
 import moment from 'moment'
+import mainWindow from './mainWindowManager'
+import mailer from './mailer'
+import eventHandler from './eventHandler'
 
 class CornManager {
   // 定时扫描调度器
@@ -10,23 +13,21 @@ class CornManager {
   currentTaskJob
 
   constructor () {
-    eventHandler.on('getTaskListCallback', (list) => {
+    mc.register(MessageTopic.receiveTaskList, (list) => {
       this.getTaskListHandler(list)
     })
-    eventHandler.on('restartScanTaskCallback', () => {
+    mc.register(MessageTopic.restartScanTask, () => {
       this.restart()
     })
   }
 
   beginScanTask () {
-    console.log.error('begin scan task!!!')
     setTimeout(() => {
       this.restart()
     }, 1000)
   }
 
   beginScanTaskNow () {
-    console.log.error('beginScanTaskNow!!!')
     this.scanTask()
     this.scanJob = new CronJob('*/60 * * * * *', () => {
       this.scanTask()
@@ -35,7 +36,6 @@ class CornManager {
   }
 
   restart () {
-    console.log.error('restart')
     if (this.scanJob) {
       this.scanJob.stop()
       this.scanJob = null
@@ -96,22 +96,22 @@ class CornManager {
       let needFailIdList = needFailList.map(task => task.id)
       let invalidIdList = [...needRemoveList, ...needFailIdList].join(',')
       let validList = []
-      console.log.warn('validList 开始筛选有效列表')
+      console.log.debug('validList 开始筛选有效列表')
       list.forEach(task => {
-        console.log.warn(task)
+        console.log.debug(task)
         if (invalidIdList.indexOf(task.id) < 0 && task.status !== TaskStatus.Failure && task.status !== TaskStatus.Success) {
           // 重置 running
           if (task.status === TaskStatus.Running) {
-            console.log.error('发现任务状态Running的task')
-            console.log.error(task)
+            console.log.debug('发现任务状态Running的task')
+            console.log.debug(task)
             task.status = TaskStatus.Waiting
             eventHandler.saveTask(task)
           }
           validList.push(task)
         }
       })
-      console.log.warn('最终有效列表')
-      console.log.warn(validList)
+      console.log.debug('最终有效列表')
+      console.log.debug(validList)
       resolve(validList)
     })
   }
@@ -129,8 +129,8 @@ class CornManager {
       }
     })
     if (currentTask) {
-      console.log.warn('发现今天需要执行的任务')
-      console.log.warn(currentTask)
+      console.log.debug('发现今天需要执行的任务')
+      console.log.debug(currentTask)
     }
     // 如果该任务是今天的任务，才会被加入corn调度
     if (currentTask && moment(currentTask.execTime).date() === moment().date()) {
@@ -151,13 +151,16 @@ class CornManager {
         this.currentTaskJob = null
       }
       this.currentTaskJob = new CronJob(pattern, () => {
-        // todo 制定定时任务，不一定要直接发送邮件
-        // todo 还有bug 邮件一次收到多个，说明这个任务被重复执行了
-        eventHandler.sendMail(null, currentTask.mailTemplate, () => {
-          this.currentTaskJob.stop()
-          this.currentTaskJob = null
-          currentTask.status = TaskStatus.Success
+        this.currentTaskJob.stop()
+        this.currentTaskJob = null
+        mailer.sendMail(currentTask.mailTemplate, (err) => {
+          currentTask.status = err ? TaskStatus.Failure : TaskStatus.Success
           eventHandler.saveTask(currentTask)
+          // 邮件业务结束以后 给个提示
+          // 任务栏闪烁
+          mainWindow.flashFrame()
+          // 给renderer发消息提示
+          eventHandler.message(err ? 'error' : 'success', err ? '发送失败，请查看错误日志' : '邮件发送成功')
         })
       }, null, true)
       this.currentTaskJob.start()

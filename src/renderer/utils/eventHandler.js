@@ -3,6 +3,7 @@ import {ipcRenderer} from 'electron'
 import eventTopic from '../../common/eventTopic'
 import vueEventTopic from './vueEventTopic'
 import dbTemplate from '../utils/indexedDBTemplate'
+import {Message} from 'element-ui'
 
 class EventHandler {
   // app // 主渲染的app对象
@@ -54,6 +55,9 @@ class EventHandler {
           dbTemplate.saveTaskList(taskList, true).then(() => {
             this.$emit(vueEventTopic.scanTaskRefresh)
           })
+        })
+        ipcRenderer.on(eventTopic.sendMessage, (_, type, message) => {
+          Message({type, message})
         })
       },
       methods: {

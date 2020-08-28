@@ -2,7 +2,8 @@ import {app, ipcMain} from 'electron'
 import eventTopic from '../../common/eventTopic'
 import path from 'path'
 import fs from 'fs'
-import nodemailer from 'nodemailer'
+import {mc, MessageTopic} from './messageCenter'
+import mailer from './mailer'
 
 const saveDir = process.env.NODE_ENV === 'development'
   ? 'd:/conf'
@@ -28,30 +29,14 @@ function checkDir (path) {
   })
 }
 
-async function sendMail (event, template, callback) {
-  let poolTemplate = `smtps://${template.email}:${template.pwd}@${template.smtp}/?pool=true`
-  let transporter = nodemailer.createTransport(poolTemplate)
-  // send mail with defined transport object
-  await transporter.sendMail({
-    from: `"${template.name}" <${template.email}>`, // sender address
-    to: template.to, // list of receivers
-    cc: template.cc,
-    subject: template.subject, // Subject line
-    html: `${template.content}<br/>${template.sign}` // html body
-  }, (err, msg) => {
-    if (err) {
-      console.log.error(err)
-      console.log.error(msg)
-      if (event) {
+async function sendMail (event, template) {
+  mailer.sendMail(template, (err) => {
+    if (event) {
+      if (err) {
         event.sender.send(eventTopic.sendMail, err)
-      }
-    } else {
-      if (event) {
+      } else {
         event.sender.send(eventTopic.sendMail)
       }
-    }
-    if (callback) {
-      callback(err, msg)
     }
   })
 }
@@ -83,8 +68,6 @@ function saveTemplate (event, template) {
     fs.writeFile(savePath, JSON.stringify(template), err => {
       if (err) throw err
       event.sender.send(eventTopic.saveTemplate)
-      // event.sender.send(eventTopic.saveConfig, null, saveConfig.path)
-      // startTaskJobHandler(null, new Date(saveConfig.time))
     })
   }).catch(error => {
     console.log.error(error)
@@ -92,18 +75,13 @@ function saveTemplate (event, template) {
   })
 }
 
-let getTaskListCallback
-
 // 获取任务列表
 function getTaskList (event, list) {
-  if (getTaskListCallback) getTaskListCallback(list)
+  mc.send(MessageTopic.receiveTaskList, list)
 }
 
-// eslint-disable-next-line no-unused-vars
-let restartScanTaskCallback
-
 function restartScanTask () {
-  if (restartScanTaskCallback) restartScanTaskCallback()
+  mc.send(MessageTopic.restartScanTask)
 }
 
 class EventHandler {
@@ -116,19 +94,6 @@ class EventHandler {
 
   init (window) {
     mainWindow = window
-  }
-
-  on (event, handler) {
-    switch (event) {
-      case 'getTaskListCallback':
-        getTaskListCallback = handler
-        break
-      case 'restartScanTaskCallback':
-        restartScanTaskCallback = handler
-        break
-      default:
-        break
-    }
   }
 
   getTaskList () {
@@ -145,6 +110,11 @@ class EventHandler {
 
   saveTaskList (taskList) {
     mainWindow.webContents.send(eventTopic.saveTaskList, taskList)
+  }
+
+  message (type, msg) {
+    // type: success/warning/info/error
+    mainWindow.webContents.send(eventTopic.sendMessage, type, msg)
   }
 
   addEventListener () {
