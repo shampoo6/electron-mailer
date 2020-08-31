@@ -38,7 +38,6 @@
 
 <script>
   import {TaskStatus} from '../utils/task'
-  import moment from 'moment'
 
   const statusTranslate = {
     success: '执行成功',
@@ -81,11 +80,6 @@
       },
       remove (id) {
         this.$emit('remove', id)
-      }
-    },
-    filters: {
-      dayFormat (value) {
-        return moment(value).format('dddd')
       }
     }
   }

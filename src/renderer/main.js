@@ -22,6 +22,10 @@ Vue.filter('timeFormat', value => {
   return moment(value).format('YYYY-MM-DD HH:mm:ss')
 })
 
+Vue.filter('dayFormat', value => {
+  return moment(value).format('dddd')
+})
+
 new Vue({
   components: {App},
   router,

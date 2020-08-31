@@ -15,10 +15,14 @@
                                 id：{{running.id}}
                             </div>
                             <div class="text item">
+                                星期几：{{running.execTime|dayFormat}}
+                            </div>
+                            <div class="text item">
                                 发送时间：{{running.execTime|timeFormat}}
                             </div>
                             <div class="text item">
                                 <el-button size="mini" @click="toEdit">编辑</el-button>
+                                <el-button size="mini" @click="copy(running.id, running.execTime)">复制</el-button>
                                 <el-button size="mini" type="danger" @click="remove(running.id)">删除</el-button>
                             </div>
                         </div>
@@ -65,11 +69,10 @@
     },
     methods: {
       list () {
-        this.running = null
-        this.waiting.splice(0, this.waiting.length)
-        this.done.splice(0, this.done.length)
         dbTemplate.list().then(list => {
-          // list[5].status = TaskStatus.Running
+          this.running = null
+          this.waiting.splice(0, this.waiting.length)
+          this.done.splice(0, this.done.length)
           list.forEach(task => {
             if (task.status === TaskStatus.Running) {
               this.running = task
@@ -88,6 +91,9 @@
       },
       toEdit () {
         this.$router.push(`/taskManage/edit/update/${this.running.id}/${this.running.execTime}`)
+      },
+      copy (id, execTime) {
+        this.$router.push(`/taskManage/edit/copy/${id}/${execTime}`)
       },
       remove (id) {
         this.$confirm('确定删除任务么?', '提示', {

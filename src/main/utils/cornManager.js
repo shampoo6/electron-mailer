@@ -11,6 +11,19 @@ class CornManager {
   scanJob
   // 当前发邮件任务计时调度器
   currentTaskJob
+  // 正在检查任务列表
+  checking
+  // 以下为运算缓存
+  // 需要移除的id列表
+  needRemoveIds
+  // 需要保存的任务列表
+  needSaveTaskList
+  // 当前应该执行的任务
+  runningTask
+  // 等待中的任务
+  waitingTaskList
+  // 完成任务列表（已完成和失败任务都算在内）
+  completeTaskList
 
   constructor () {
     mc.register(MessageTopic.receiveTaskList, (list) => {
@@ -53,15 +66,23 @@ class CornManager {
 
   getTaskListHandler (list) {
     if (!list || list.length === 0) return
+    if (this.checking) return
     console.log.debug('start scan task')
-    // 流程如下
-    // 1.检查过期数据，过期数据满足以下条件
-    // 状态为错误或已完成的数据，updateTime距离现在超过7天的，都视为过期处理
-    // 过期任务直接删除
-    // 2.检查waiting中的任务是否存在execTime已经是过去时间的错误任务，如果有这样的任务，将状态置为失败
-    // 3.检查waiting中的任务，找到最先执行的任务，将状态置为running，并开启计时job
-    this.checkTimeout(list).then((validList) => {
-      this.checkRunning(validList)
+    this.checking = true
+    this.resetTemp().then(() => {
+      return this.filterTask(list)
+    }).then(() => {
+      return this.handleTimeout()
+    }).then(() => {
+      return this.findRunning()
+    }).then(() => {
+      return this.doDBOperation()
+    }).then(() => {
+      return this.startRunningJob()
+    }).catch(e => {
+      console.log.error(e)
+    }).finally(() => {
+      this.checking = false
     })
   }
 
@@ -165,6 +186,145 @@ class CornManager {
       }, null, true)
       this.currentTaskJob.start()
     }
+  }
+
+  // 重置缓存
+  resetTemp () {
+    return new Promise(resolve => {
+      this.needRemoveIds = []
+      this.needSaveTaskList = []
+      this.runningTask = null
+      this.waitingTaskList = []
+      this.completeTaskList = []
+      resolve()
+    })
+  }
+
+  // 给任务进行分类处理
+  filterTask (list) {
+    return new Promise(resolve => {
+      list.forEach(task => {
+        switch (task.status) {
+          case TaskStatus.Waiting:
+            this.waitingTaskList.push(task)
+            break
+          case TaskStatus.Running:
+            this.runningTask = task
+            break
+          case TaskStatus.Failure:
+          case TaskStatus.Success:
+            this.completeTaskList.push(task)
+            break
+          default:
+            break
+        }
+      })
+      resolve()
+    })
+  }
+
+  // 状态为错误或已完成的数据，updateTime距离现在超过7天的，都视为过期处理
+  // 过期任务直接删除
+  // 检查waiting中的任务是否存在execTime已经是过去时间的错误任务，如果有这样的任务，将状态置为失败
+  // 检查running的任务是否execTime已过期
+  handleTimeout () {
+    return new Promise(resolve => {
+      let now = moment()
+      this.completeTaskList.forEach(task => {
+        if (moment(task.updateTime).add(7, 'd').isBefore(now)) {
+          this.needRemoveIds.push(task.id)
+        }
+      })
+      this.waitingTaskList.forEach(task => {
+        if (moment(task.execTime).isBefore(now)) {
+          task.status = TaskStatus.Failure
+          this.needSaveTaskList.push(task)
+        }
+      })
+      if (this.runningTask && moment(this.runningTask.execTime).isBefore(now)) {
+        this.runningTask.status = TaskStatus.Failure
+        this.needSaveTaskList.push(this.runningTask)
+        this.runningTask = null
+      }
+      resolve()
+    })
+  }
+
+  // 找到本次因该置为Running的任务
+  findRunning () {
+    return new Promise(resolve => {
+      this.waitingTaskList.every(task => {
+        if (!this.runningTask) {
+          this.runningTask = task
+          return true
+        }
+        // 如果发现比当前任务更早的任务
+        if (moment(task.execTime).isBefore(this.runningTask.execTime)) {
+          // 当前任务如果是running状态，需要更改状态
+          if (this.runningTask.status === TaskStatus.Running) {
+            this.runningTask.status = TaskStatus.Waiting
+            this.needSaveTaskList.push(this.runningTask)
+          }
+          this.runningTask = task
+        }
+        return true
+      })
+      if (this.runningTask.status === TaskStatus.Waiting) {
+        this.runningTask.status = TaskStatus.Running
+        this.needSaveTaskList.push(this.runningTask)
+      }
+      resolve()
+    })
+  }
+
+  // 执行数据库操作
+  doDBOperation () {
+    return new Promise(resolve => {
+      if (this.needRemoveIds.length > 0) {
+        eventHandler.removeTask(this.needRemoveIds)
+      }
+      if (this.needSaveTaskList.length > 0) {
+        eventHandler.saveTaskList(this.needSaveTaskList)
+      }
+      resolve()
+    })
+  }
+
+  startRunningJob () {
+    return new Promise(resolve => {
+      // 如果当前任务的执行时间和今天是同一天，就添加corn job
+      if (this.runningTask && moment(this.runningTask.execTime).isSame(moment(), 'day')) {
+        // 开始邮件任务
+        let sendTime = moment(this.runningTask.execTime)
+        const seconds = sendTime.seconds()
+        const minutes = sendTime.minutes()
+        const hours = sendTime.hours()
+        const pattern = `${seconds} ${minutes} ${hours} * * *`
+        console.log.debug('start task corn')
+        console.log.debug('task id: ' + this.runningTask.id)
+        console.log.debug('pattern: ' + pattern)
+        if (this.currentTaskJob) {
+          this.currentTaskJob.stop()
+          this.currentTaskJob = null
+        }
+        let task = Object.assign({}, this.runningTask)
+        this.currentTaskJob = new CronJob(pattern, () => {
+          this.currentTaskJob.stop()
+          this.currentTaskJob = null
+          mailer.sendMail(task.mailTemplate, (err) => {
+            task.status = err ? TaskStatus.Failure : TaskStatus.Success
+            eventHandler.saveTask(task)
+            // 邮件业务结束以后 给个提示
+            // 任务栏闪烁
+            mainWindow.flashFrame()
+            // 给renderer发消息提示
+            eventHandler.message(err ? 'error' : 'success', err ? '发送失败，请查看错误日志' : '邮件发送成功')
+          })
+        }, null, true)
+        this.currentTaskJob.start()
+      }
+      resolve()
+    })
   }
 }
 
